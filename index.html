@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v9 dl-label -->
+<!-- build: v10 trendline -->
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -90,6 +90,7 @@ td.rep{font-weight:600;color:var(--ink);}
       <button class="seg" data-grp="range" data-v="0">All</button>
     </div>
     <div class="chartbox" style="height:250px;"><canvas id="trend" role="img" aria-label="Monthly downloads bar chart"></canvas></div>
+    <div id="trendLegend" style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--muted);margin-top:8px"></div>
   </div>
 
   <div class="row">
@@ -171,12 +172,23 @@ document.getElementById('meth').innerHTML='<b>How to read this:</b> GA4 data is 
 let metric='DL',range=18,basis='all',drill='DL';
 const baseOpts=extra=>Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f(c.raw)}}}},extra);
 const gridc='rgba(18,44,115,.10)';
+const UNREL=new Set(['2026-01','2026-02','2026-03','2026-04']);
+function stripe(c){var cv=document.createElement('canvas');cv.width=cv.height=8;var g=cv.getContext('2d');g.fillStyle='#eef1f7';g.fillRect(0,0,8,8);g.strokeStyle=c;g.lineWidth=2;g.beginPath();g.moveTo(0,8);g.lineTo(8,0);g.stroke();g.beginPath();g.moveTo(-3,3);g.lineTo(3,-3);g.stroke();g.beginPath();g.moveTo(5,11);g.lineTo(11,5);g.stroke();return g.createPattern(cv,'repeat');}
+const STRIPE=stripe('#9aa3b5');const TRENDLINE='#E8852E';
 const trend=new Chart(document.getElementById('trend'),{type:'bar',
- data:{labels:[],datasets:[{data:[],backgroundColor:TEAL2,borderRadius:5,maxBarThickness:34}]},
- options:baseOpts({scales:{y:{beginAtZero:true,grid:{color:gridc},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}}})});
+ data:{labels:[],datasets:[
+  {label:'Monthly',data:[],backgroundColor:TEAL2,borderRadius:5,maxBarThickness:34,order:2},
+  {label:'3-mo avg',type:'line',data:[],borderColor:TRENDLINE,backgroundColor:TRENDLINE,borderWidth:2,pointRadius:0,tension:.35,order:1}
+ ]},
+ options:baseOpts({scales:{y:{beginAtZero:true,grid:{color:gridc},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f(c.raw)}}}})});
+document.getElementById('trendLegend').innerHTML='<span style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:2px;background:'+TEAL2+'"></span>Monthly</span><span style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:2px;background:repeating-linear-gradient(-45deg,#eef1f7,#eef1f7 2px,#9aa3b5 2px,#9aa3b5 3px)"></span>Partial / missing tracking (Jan–Apr 2026)</span><span style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:2px;background:'+TRENDLINE+'"></span>3-month average</span>';
 function drawTrend(){const src=metric==='DL'?TOT:TOTU;let idx=M.map((_,i)=>i);if(range)idx=idx.slice(-range);
- trend.data.labels=idx.map(i=>mlab(M[i]));trend.data.datasets[0].data=idx.map(i=>src[i]);
- trend.data.datasets[0].backgroundColor=metric==='DL'?TEAL2:TEAL3;trend.update();}
+ const vals=idx.map(i=>src[i]);const base=metric==='DL'?TEAL2:TEAL3;
+ trend.data.labels=idx.map(i=>mlab(M[i]));
+ trend.data.datasets[0].data=vals;
+ trend.data.datasets[0].backgroundColor=idx.map(i=>UNREL.has(M[i])?STRIPE:base);
+ trend.data.datasets[1].data=vals.map((_,j)=>{const a=vals.slice(Math.max(0,j-1),j+2);return Math.round(a.reduce((s,v)=>s+v,0)/a.length);});
+ trend.update();}
 const topChart=new Chart(document.getElementById('top'),{type:'bar',
  data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:5}]},
  options:baseOpts({indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:gridc},title:{display:true,text:'Downloads',color:'#7c8499',font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10.5},autoSkip:false}}}})});
