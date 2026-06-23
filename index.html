@@ -173,13 +173,13 @@ const trend=new Chart(document.getElementById('trend'),{type:'bar',
 function drawTrend(){const src=metric==='DL'?TOT:TOTU;let idx=M.map((_,i)=>i);if(range)idx=idx.slice(-range);
  trend.data.labels=idx.map(i=>mlab(M[i]));trend.data.datasets[0].data=idx.map(i=>src[i]);
  trend.data.datasets[0].backgroundColor=metric==='DL'?TEAL2:TEAL3;trend.update();}
-const top=new Chart(document.getElementById('top'),{type:'bar',
+const topChart=new Chart(document.getElementById('top'),{type:'bar',
  data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:5}]},
  options:baseOpts({indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:gridc}},y:{grid:{display:false},ticks:{font:{size:10.5},autoSkip:false}}}})});
 function drawTop(){const s=[...R].sort((a,b)=>b[basis]-a[basis]).slice(0,10).reverse();
- top.data.labels=s.map(r=>r.title.length>42?r.title.slice(0,40)+'…':r.title);
- top.data.datasets[0].data=s.map(r=>r[basis]);
- top.data.datasets[0].backgroundColor=s.map(r=>r.isNew?GOLD:TEAL);top.update();}
+ topChart.data.labels=s.map(r=>r.title.length>42?r.title.slice(0,40)+'…':r.title);
+ topChart.data.datasets[0].data=s.map(r=>r[basis]);
+ topChart.data.datasets[0].backgroundColor=s.map(r=>r.isNew?GOLD:TEAL);topChart.update();}
 const repSel=document.getElementById('repSel');
 repSel.innerHTML=[...R].map((r,i)=>({r,i})).sort((a,b)=>b.r.all-a.r.all).map(o=>`<option value="${o.i}">${o.r.title}${o.r.isNew?'  (new)':''}</option>`).join('');
 const repTrend=new Chart(document.getElementById('repTrend'),{type:'line',
