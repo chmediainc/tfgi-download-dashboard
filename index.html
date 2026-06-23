@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: navy-lime v5 cleaned -->
+<!-- build: v6 month-filters -->
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -58,6 +58,7 @@ td.rep{font-weight:600;color:var(--ink);}
 .tablewrap{overflow-x:auto;}
 @media(max-width:880px){.kpis{grid-template-columns:repeat(2,1fr);}.row{grid-template-columns:1fr;}.titleblock{text-align:left;}.topbar{align-items:flex-start;}}
 @media(max-width:480px){.wrap{padding:11px;}.kpi .val{font-size:23px;}}
+.psel{font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:auto;max-width:210px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -93,13 +94,14 @@ td.rep{font-weight:600;color:var(--ink);}
 
   <div class="row">
     <div class="card">
-      <h2>Top reports</h2>
+      <h2>Top reports <span id="topPeriod" style="font-weight:400;color:var(--muted);font-size:11px"></span></h2>
       <div class="controls">
         <span class="lbl">By</span>
         <button class="seg on" data-grp="basis" data-v="all">All-time</button>
         <button class="seg" data-grp="basis" data-v="t12">Last 12 mo</button>
         <button class="seg" data-grp="basis" data-v="ytd">2026 YTD</button>
         <button class="seg" data-grp="basis" data-v="jun">This month</button>
+        <select id="periodSel" class="psel" aria-label="Pick month or year"></select>
       </div>
       <div class="chartbox" style="height:430px;"><canvas id="top" role="img" aria-label="Top reports horizontal bar chart"></canvas></div>
     </div>
@@ -110,7 +112,8 @@ td.rep{font-weight:600;color:var(--ink);}
         <button class="seg on" data-grp="drill" data-v="DL">Downloads</button>
         <button class="seg" data-grp="drill" data-v="US">Users</button>
       </div>
-      <div class="chartbox" style="height:180px;"><canvas id="repTrend" role="img" aria-label="Selected report monthly trend"></canvas></div>
+      <div class="chartbox" style="height:165px;"><canvas id="repTrend" role="img" aria-label="Selected report monthly trend"></canvas></div>
+      <div class="controls" style="margin:10px 0 2px;"><span class="lbl">Breakdown for</span><select id="repMonth" class="psel" aria-label="Pick month for breakdown"></select></div>
       <div class="filebox" id="repFiles"></div>
     </div>
   </div>
@@ -177,21 +180,37 @@ function drawTrend(){const src=metric==='DL'?TOT:TOTU;let idx=M.map((_,i)=>i);if
 const topChart=new Chart(document.getElementById('top'),{type:'bar',
  data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:5}]},
  options:baseOpts({indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:gridc}},y:{grid:{display:false},ticks:{font:{size:10.5},autoSkip:false}}}})});
-function drawTop(){const s=[...R].sort((a,b)=>b[basis]-a[basis]).slice(0,10).reverse();
- topChart.data.labels=s.map(r=>r.title.length>42?r.title.slice(0,40)+'…':r.title);
- topChart.data.datasets[0].data=s.map(r=>r[basis]);
- topChart.data.datasets[0].backgroundColor=s.map(r=>r.isNew?GOLD:TEAL);topChart.update();}
+function rv(r,b){if(b==='all')return r.all;if(b==='t12')return r.t12;if(b==='ytd')return r.ytd;if(b==='jun')return r.jun;if(b[0]==='m')return r.DL[+b.slice(1)];if(b[0]==='y'){const y=b.slice(1);return r.DL.reduce((s,v,i)=>s+(M[i].slice(0,4)===y?v:0),0);}return 0;}
+function periodLabel(b){if(b==='all')return'all-time';if(b==='t12')return'last 12 months';if(b==='ytd')return'2026 YTD';if(b==='jun')return mlab(M[JI])+' (this month)';if(b[0]==='m')return mlab(M[+b.slice(1)]);if(b[0]==='y')return b.slice(1)+' (full year)';return'';}
+function drawTop(){const s=[...R].map(r=>({r,v:rv(r,basis)})).sort((a,b)=>b.v-a.v).slice(0,10).reverse();
+ topChart.data.labels=s.map(o=>o.r.title.length>42?o.r.title.slice(0,40)+'…':o.r.title);
+ topChart.data.datasets[0].data=s.map(o=>o.v);
+ topChart.data.datasets[0].backgroundColor=s.map(o=>o.r.isNew?GOLD:TEAL);topChart.update();
+ const lab=document.getElementById('topPeriod');if(lab)lab.textContent='· '+periodLabel(basis);}
 const repSel=document.getElementById('repSel');
 repSel.innerHTML=[...R].map((r,i)=>({r,i})).sort((a,b)=>b.r.all-a.r.all).map(o=>`<option value="${o.i}">${o.r.title}${o.r.isNew?'  (new)':''}</option>`).join('');
+const periodSel=document.getElementById('periodSel');
+{const yrs=[...new Set(M.map(m=>m.slice(0,4)))].sort().reverse();
+ let o='<option value="">— or pick month / year —</option>';
+ o+='<optgroup label="Full year">'+yrs.map(y=>`<option value="y${y}">${y}</option>`).join('')+'</optgroup>';
+ o+='<optgroup label="Month">'+M.map((m,i)=>i).reverse().map(i=>`<option value="m${i}">${mlab(M[i])}</option>`).join('')+'</optgroup>';
+ periodSel.innerHTML=o;}
+periodSel.onchange=()=>{if(periodSel.value){basis=periodSel.value;document.querySelectorAll('.seg[data-grp="basis"]').forEach(x=>x.classList.remove('on'));drawTop();}};
+const repMonth=document.getElementById('repMonth');
+repMonth.innerHTML=M.map((m,i)=>i).reverse().map(i=>`<option value="${i}">${mlab(M[i])}</option>`).join('');
+repMonth.value=String(M.length-1);
 const repTrend=new Chart(document.getElementById('repTrend'),{type:'line',
  data:{labels:M.map(mlab),datasets:[{data:[],borderColor:TEAL2,backgroundColor:'rgba(30,71,168,.14)',fill:true,tension:.32,pointRadius:0,borderWidth:2}]},
  options:baseOpts({scales:{y:{beginAtZero:true,grid:{color:gridc},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{maxTicksLimit:10,font:{size:9}}}}})});
 function drawRep(){const r=R[+repSel.value];repTrend.data.datasets[0].data=r[drill];
  repTrend.data.datasets[0].borderColor=drill==='DL'?TEAL2:TEAL3;
  repTrend.data.datasets[0].backgroundColor=drill==='DL'?'rgba(30,71,168,.14)':'rgba(110,138,212,.18)';repTrend.update();
- const tot=r.files.map(fl=>fl[drill].reduce((a,b)=>a+b,0));
- document.getElementById('repFiles').innerHTML='<div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Files · all-time '+(drill==='DL'?'downloads':'users')+'</div>'+
-  r.files.map((fl,i)=>`<div class="filerow"><span class="muted">${fl.role}</span><b>${f(tot[i])}</b></div>`).join('');}
+ const mi=+document.getElementById('repMonth').value;
+ const rows=r.files.map(fl=>({role:fl.role,v:fl[drill][mi]}));
+ const tot=rows.reduce((s,x)=>s+x.v,0);const mx=Math.max(1,...rows.map(x=>x.v));
+ const lbl=drill==='DL'?'downloads':'users';
+ document.getElementById('repFiles').innerHTML='<div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px"><span>File · '+mlab(M[mi])+' '+lbl+'</span><span>Total '+f(tot)+'</span></div>'+
+  rows.map(x=>'<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:2px"><span class=muted>'+x.role+'</span><b>'+f(x.v)+'</b></div><div class="bar"><i style="width:'+Math.round(100*x.v/mx)+'%"></i></div></div>').join('');}
 let sortK='all',dir=-1;
 function drawTable(){const q=(document.getElementById('search').value||'').toLowerCase();
  let rows=R.filter(r=>r.title.toLowerCase().includes(q));
@@ -207,8 +226,8 @@ document.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
  const g=b.dataset.grp;document.querySelectorAll('.seg[data-grp="'+g+'"]').forEach(x=>x.classList.remove('on'));b.classList.add('on');
  const v=b.dataset.v;
  if(g==='metric'){metric=v;drawTrend();}else if(g==='range'){range=+v;drawTrend();}
- else if(g==='basis'){basis=v;drawTop();}else if(g==='drill'){drill=v;drawRep();}});
-repSel.onchange=drawRep;document.getElementById('search').oninput=drawTable;
+ else if(g==='basis'){basis=v;document.getElementById('periodSel').value='';drawTop();}else if(g==='drill'){drill=v;drawRep();}});
+repSel.onchange=drawRep;document.getElementById('repMonth').onchange=drawRep;document.getElementById('search').oninput=drawTable;
 document.querySelectorAll('#tbl th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(!k)return;
  if(sortK===k)dir*=-1;else{sortK=k;dir=k==='title'?1:-1;}
  document.querySelectorAll('#tbl th .arr').forEach(a=>a.textContent='');
