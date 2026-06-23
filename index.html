@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v8 sparkline -->
+<!-- build: v9 dl-label -->
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -94,7 +94,7 @@ td.rep{font-weight:600;color:var(--ink);}
 
   <div class="row">
     <div class="card">
-      <h2>Top reports <span id="topPeriod" style="font-weight:400;color:var(--muted);font-size:11px"></span></h2>
+      <h2>Top reports by downloads <span id="topPeriod" style="font-weight:400;color:var(--muted);font-size:11px"></span></h2>
       <div class="controls">
         <span class="lbl">By</span>
         <button class="seg on" data-grp="basis" data-v="all">All-time</button>
@@ -179,7 +179,7 @@ function drawTrend(){const src=metric==='DL'?TOT:TOTU;let idx=M.map((_,i)=>i);if
  trend.data.datasets[0].backgroundColor=metric==='DL'?TEAL2:TEAL3;trend.update();}
 const topChart=new Chart(document.getElementById('top'),{type:'bar',
  data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:5}]},
- options:baseOpts({indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:gridc}},y:{grid:{display:false},ticks:{font:{size:10.5},autoSkip:false}}}})});
+ options:baseOpts({indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:gridc},title:{display:true,text:'Downloads',color:'#7c8499',font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10.5},autoSkip:false}}}})});
 function rv(r,b){if(b==='all')return r.all;if(b==='t12')return r.t12;if(b==='ytd')return r.ytd;if(b==='jun')return r.jun;if(b[0]==='m')return r.DL[+b.slice(1)];if(b[0]==='y'){const y=b.slice(1);return r.DL.reduce((s,v,i)=>s+(M[i].slice(0,4)===y?v:0),0);}return 0;}
 function periodLabel(b){if(b==='all')return'all-time';if(b==='t12')return'last 12 months';if(b==='ytd')return'2026 YTD';if(b==='jun')return mlab(M[JI])+' (this month)';if(b[0]==='m')return mlab(M[+b.slice(1)]);if(b[0]==='y')return b.slice(1)+' (full year)';return'';}
 function drawTop(){const s=[...R].map(r=>({r,v:rv(r,basis)})).sort((a,b)=>b.v-a.v).slice(0,10).reverse();
