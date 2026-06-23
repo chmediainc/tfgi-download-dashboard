@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>TFGI Research — Download Performance</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+--teal:#13463B;--teal2:#1E7D66;--teal3:#2A9D78;--green:#33B27A;
+--mint:#eaf4f0;--mint2:#d3e8e0;--ink:#28322e;--muted:#7d8c86;--line:#e1ece8;
+--bg:#f3f8f6;--gold:#bd8a2a;--up:#2f9e63;--down:#cf5b46;}
+*{box-sizing:border-box;}
+html,body{margin:0;}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;}
+.wrap{max-width:1200px;margin:0 auto;padding:18px;}
+.topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;background:#fff;border:1px solid var(--line);border-top:4px solid var(--teal);border-radius:14px;padding:16px 22px;flex-wrap:wrap;}
+.brand{font-size:18px;font-weight:800;color:var(--teal);letter-spacing:.2px;}
+.brand span{color:var(--teal3);}
+.brandsub{font-size:12px;color:var(--muted);margin-top:1px;}
+.titleblock{text-align:right;}
+.titleblock h1{margin:0;font-size:15px;color:var(--teal);font-weight:700;}
+.titleblock p{margin:2px 0 0;font-size:11px;color:var(--muted);}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0;}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 15px;position:relative;overflow:hidden;}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--teal3),var(--teal));}
+.kpi .lab{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;}
+.kpi .val{font-size:27px;font-weight:800;color:var(--teal);line-height:1.15;margin-top:3px;}
+.kpi .sub{font-size:11px;margin-top:2px;color:var(--muted);min-height:14px;}
+.up{color:var(--up);font-weight:700;}.dn{color:var(--down);font-weight:700;}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px;}
+.card h2{margin:0 0 6px;font-size:14px;color:var(--teal);font-weight:700;}
+.row{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start;}
+.controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:8px 0 12px;}
+.lbl{font-size:11.5px;color:var(--muted);margin-right:2px;}
+.seg{font-family:inherit;font-size:12px;font-weight:600;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;transition:.12s;}
+.seg:hover{border-color:var(--teal3);}
+.seg.on{background:var(--teal2);border-color:var(--teal2);color:#fff;}
+select,input[type=search]{font-family:inherit;font-size:12.5px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);width:100%;}
+.chartbox{position:relative;width:100%;}
+.note{background:var(--mint);border:1px solid var(--mint2);border-left:4px solid var(--teal2);border-radius:11px;padding:13px 16px;font-size:12px;color:#3c4a45;line-height:1.55;}
+.note b{color:var(--teal);}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th,td{padding:9px 9px;border-bottom:1px solid var(--line);text-align:left;}
+th{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);cursor:pointer;white-space:nowrap;}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;}
+th .arr{opacity:.6;font-size:9px;}
+tr.new td:first-child{box-shadow:inset 3px 0 0 var(--gold);}
+td.rep{font-weight:600;color:var(--ink);}
+.badge{display:inline-block;font-size:9px;font-weight:800;color:#7a5a12;background:#f3e6c4;border-radius:5px;padding:1px 5px;margin-left:6px;vertical-align:middle;letter-spacing:.4px;}
+.bar{height:7px;background:var(--mint2);border-radius:4px;overflow:hidden;min-width:46px;}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--teal3),var(--teal2));}
+.muted{color:var(--muted);}
+.filebox{margin-top:10px;border-top:1px solid var(--line);padding-top:8px;}
+.filerow{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;border-bottom:1px solid #f0f6f3;}
+.foot{font-size:11px;color:var(--muted);margin:6px 4px 2px;}
+.tablewrap{overflow-x:auto;}
+@media(max-width:880px){.kpis{grid-template-columns:repeat(2,1fr);}.row{grid-template-columns:1fr;}.titleblock{text-align:left;}.topbar{align-items:flex-start;}}
+@media(max-width:480px){.wrap{padding:11px;}.kpi .val{font-size:23px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <div class="brand">Tech for Good <span>Institute</span></div>
+      <div class="brandsub">Research Download Performance</div>
+    </div>
+    <div class="titleblock">
+      <h1>Report PDF Downloads</h1>
+      <p>history through <span id="thru"></span> · updated <span id="gen"></span></p>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h2>Monthly downloads</h2>
+    <div class="controls">
+      <span class="lbl">Metric</span>
+      <button class="seg on" data-grp="metric" data-v="DL">Downloads</button>
+      <button class="seg" data-grp="metric" data-v="US">Users</button>
+      <span style="width:10px"></span>
+      <span class="lbl">Range</span>
+      <button class="seg" data-grp="range" data-v="12">12 mo</button>
+      <button class="seg on" data-grp="range" data-v="18">18 mo</button>
+      <button class="seg" data-grp="range" data-v="0">All</button>
+    </div>
+    <div class="chartbox" style="height:250px;"><canvas id="trend" role="img" aria-label="Monthly downloads bar chart"></canvas></div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>Top reports</h2>
+      <div class="controls">
+        <span class="lbl">By</span>
+        <button class="seg on" data-grp="basis" data-v="all">All-time</button>
+        <button class="seg" data-grp="basis" data-v="t12">Last 12 mo</button>
+        <button class="seg" data-grp="basis" data-v="ytd">2026 YTD</button>
+        <button class="seg" data-grp="basis" data-v="jun">This month</button>
+      </div>
+      <div class="chartbox" style="height:430px;"><canvas id="top" role="img" aria-label="Top reports horizontal bar chart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Drill into a report</h2>
+      <div class="controls" style="margin-bottom:8px;"><select id="repSel"></select></div>
+      <div class="controls" style="margin-top:0;">
+        <button class="seg on" data-grp="drill" data-v="DL">Downloads</button>
+        <button class="seg" data-grp="drill" data-v="US">Users</button>
+      </div>
+      <div class="chartbox" style="height:180px;"><canvas id="repTrend" role="img" aria-label="Selected report monthly trend"></canvas></div>
+      <div class="filebox" id="repFiles"></div>
+    </div>
+  </div>
+
+  <div class="note" id="meth"></div>
+
+  <div class="card" style="margin-top:16px;">
+    <h2 style="margin-bottom:10px;">All reports</h2>
+    <div class="controls" style="margin-top:0;"><input type="search" id="search" placeholder="Filter reports…"/></div>
+    <div class="tablewrap">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="title">Report <span class="arr"></span></th>
+        <th class="num" data-k="all">All-time <span class="arr">▼</span></th>
+        <th class="num" data-k="ytd">2026 YTD <span class="arr"></span></th>
+        <th class="num" data-k="may">May 26 <span class="arr"></span></th>
+        <th class="num" data-k="jun">Jun 26 <span class="arr"></span></th>
+        <th class="num" data-k="mom">MoM <span class="arr"></span></th>
+        <th style="width:110px">Last 12 mo</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="foot">Interactive view of the TFGI Research Download Tracker · Source: GA4 (to Apr 2026) + developer server log (May 2026+).</div>
+</div>
+
+<script>
+const D={"months": ["2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"], "reports": [{"sn": 1, "title": "The Platform Economy: Southeast Asia’s Digital Growth Catalyst", "isNew": false, "url": "https://techforgoodinstitute.org/research/tfgi-reports/the-platform-economy-southeast-asias-digital-growth-catalyst/", "DL": [27, 26, 35, 19, 11, 17, 1, 6, 4, 15, 21, 24, 12, 11, 5, 9, 16, 14, 7, 13, 10, 15, 6, 9, 10, 8, 5, 0, 0, 1, 1, 2], "US": [19, 20, 30, 18, 10, 12, 1, 6, 3, 13, 19, 18, 11, 6, 4, 9, 16, 13, 7, 12, 8, 12, 6, 9, 9, 8, 5, 0, 0, 1, 1, 2], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2021/10/UPDATED_TFGI-Bain_Full-Report.pdf", "DL": [13, 19, 22, 11, 8, 14, 1, 4, 3, 10, 12, 15, 7, 10, 2, 9, 13, 13, 4, 11, 8, 10, 6, 5, 7, 5, 3, 0, 0, 1, 1, 1], "US": [10, 15, 20, 10, 7, 9, 1, 4, 2, 8, 11, 10, 7, 5, 2, 9, 13, 12, 4, 10, 6, 8, 6, 5, 7, 5, 3, 0, 0, 1, 1, 1]}, {"role": "Summary (English)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2021/10/TFGI_SummaryDeck_20211003.pdf", "DL": [12, 5, 10, 7, 3, 3, 0, 2, 1, 3, 5, 5, 4, 0, 3, 0, 3, 1, 2, 2, 2, 4, 0, 4, 3, 2, 2, 0, 0, 0, 0, 1], "US": [8, 4, 8, 7, 3, 3, 0, 2, 1, 3, 5, 4, 3, 0, 2, 0, 3, 1, 2, 2, 2, 3, 0, 4, 2, 2, 2, 0, 0, 0, 0, 1]}, {"role": "Summary (Bahasa)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2022/02/Platform-Economy-Summary-Report_Bahasa.pdf", "DL": [2, 2, 3, 1, 0, 0, 0, 0, 0, 2, 4, 4, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], "US": [1, 1, 2, 1, 0, 0, 0, 0, 0, 2, 3, 4, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]}]}, {"sn": 2, "title": "Digital Financial Services for Financial Inclusion in Southeast Asia", "isNew": false, "url": "https://techforgoodinstitute.org/research/tfgi-reports/digital-financial-services-for-financial-inclusion-in-southeast-asia/", "DL": [17, 18, 28, 5, 11, 8, 1, 1, 5, 15, 24, 11, 15, 5, 7, 5, 4, 10, 7, 6, 7, 3, 5, 5, 2, 4, 0, 0, 0, 0, 1, 0], "US": [15, 13, 21, 5, 11, 7, 1, 1, 2, 11, 16, 8, 11, 5, 7, 5, 4, 8, 7, 5, 5, 2, 4, 5, 2, 4, 0, 0, 0, 0, 1, 0], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2022/10/TFGI_DFSFIISA-Report_111122.pdf", "DL": [12, 8, 22, 4, 6, 7, 1, 1, 4, 13, 20, 11, 12, 4, 5, 4, 3, 10, 4, 5, 7, 3, 5, 2, 1, 4, 0, 0, 0, 0, 1, 0], "US": [11, 6, 16, 4, 6, 6, 1, 1, 1, 10, 12, 8, 9, 4, 5, 4, 3, 8, 4, 4, 5, 2, 4, 2, 1, 4, 0, 0, 0, 0, 1, 0]}, {"role": "Summary (English)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2022/10/TFGI_DFSFFIISA_Executive-Summary_02.pdf", "DL": [5, 10, 6, 1, 5, 1, 0, 0, 1, 2, 4, 0, 3, 1, 2, 1, 1, 0, 3, 1, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0], "US": [4, 7, 5, 1, 5, 1, 0, 0, 1, 1, 4, 0, 2, 1, 2, 1, 1, 0, 3, 1, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0]}]}, {"sn": 3, "title": "Towards a Resilient Cyberspace in Southeast Asia", "isNew": false, "url": "https://techforgoodinstitute.org/research/tfgi-reports/towards-a-resilient-cyberspace-in-southeast-asia/", "DL": [18, 27, 23, 12, 17, 8, 0, 1, 2, 17, 24, 24, 15, 11, 4, 17, 20, 14, 7, 15, 14, 7, 12, 10, 12, 4, 2, 0, 0, 0, 1, 0], "US": [15, 23, 19, 10, 12, 7, 0, 1, 2, 17, 19, 22, 15, 10, 4, 16, 18, 12, 7, 13, 7, 7, 11, 7, 12, 4, 2, 0, 0, 0, 1, 0], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/07/TFGI_Cybersecurity_Report_Digital_report.pdf", "DL": [13, 20, 18, 10, 13, 7, 0, 0, 2, 10, 13, 20, 10, 9, 3, 14, 16, 11, 6, 13, 13, 5, 7, 9, 10, 3, 2, 0, 0, 0, 0, 0], "US": [11, 17, 15, 8, 9, 6, 0, 0, 2, 10, 11, 18, 10, 8, 3, 13, 14, 10, 6, 11, 6, 5, 7, 6, 10, 3, 2, 0, 0, 0, 0, 0]}, {"role": "Summary (English)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/07/TFGI_Towards_a_Resilient_Cyberspace_in_Southeast_Asia_Executive_Summary.pdf", "DL": [5, 7, 5, 2, 4, 1, 0, 1, 0, 7, 11, 4, 5, 2, 1, 3, 4, 3, 1, 2, 1, 2, 5, 1, 2, 1, 0, 0, 0, 0, 1, 0], "US": [4, 6, 4, 2, 3, 1, 0, 1, 0, 7, 8, 4, 5, 2, 1, 3, 4, 2, 1, 2, 1, 2, 4, 1, 2, 1, 0, 0, 0, 0, 1, 0]}]}, {"sn": 4, "title": "What Impact Means to Digital Economy Companies in Southeast Asia", "isNew": false, "url": "https://techforgoodinstitute.org/research/tfgi-reports/what-impact-means-to-digital-economy-companies-in-southeast-asia/", "DL": [23, 18, 13, 11, 10, 4, 0, 0, 4, 2, 9, 8, 1, 1, 1, 8, 2, 1, 4, 2, 5, 7, 2, 0, 4, 1, 1, 0, 0, 0, 1, 0], "US": [19, 13, 9, 8, 5, 4, 0, 0, 4, 2, 7, 8, 1, 1, 1, 5, 2, 1, 4, 2, 4, 5, 2, 0, 4, 1, 1, 0, 0, 0, 1, 0], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/07/TFGI_CGS_Report_Digital_report.pdf", "DL": [11, 11, 5, 7, 8, 3, 0, 0, 3, 2, 5, 5, 1, 1, 1, 5, 2, 1, 3, 2, 4, 6, 1, 0, 4, 0, 1, 0, 0, 0, 0, 0], "US": [9, 8, 4, 5, 3, 3, 0, 0, 3, 2, 3, 5, 1, 1, 1, 2, 2, 1, 3, 2, 3, 4, 1, 0, 4, 0, 1, 0, 0, 0, 0, 0]}, {"role": "Summary (English)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/07/TFGI_CGS_Executive_Summary_What_Impact_Means_to_Digital_Economy_Companies.pdf", "DL": [7, 3, 3, 3, 0, 0, 0, 0, 1, 0, 2, 2, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0], "US": [6, 2, 2, 2, 0, 0, 0, 0, 1, 0, 2, 2, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0]}, {"role": "Summary Deck", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/07/TFGI_What_Impact_Means_to_DECs_in_Southeast_Asia_Summary_Deck.pdf", "DL": [5, 4, 5, 1, 2, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], "US": [4, 3, 3, 1, 2, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]}]}, {"sn": 5, "title": "From Tech for Growth to Tech for Good", "isNew": false, "url": "https://techforgoodinstitute.org/research/tfgi-reports/from-tech-for-growth-to-tech-for-good/", "DL": [43, 37, 33, 11, 26, 7, 2, 3, 11, 14, 24, 17, 18, 11, 1, 10, 16, 16, 9, 5, 6, 6, 3, 4, 2, 2, 2, 0, 0, 0, 1, 0], "US": [28, 21, 26, 8, 22, 4, 2, 3, 8, 14, 21, 14, 15, 8, 1, 6, 13, 14, 6, 5, 5, 6, 3, 4, 2, 2, 2, 0, 0, 0, 1, 0], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/07/TFGI_TFG_Report_Digital_report.pdf", "DL": [20, 21, 16, 8, 14, 5, 2, 3, 10, 9, 12, 10, 14, 10, 1, 9, 8, 11, 6, 5, 4, 5, 2, 1, 1, 2, 1, 0, 0, 0, 1, 0], "US": [12, 10, 12, 6, 12, 3, 2, 3, 7, 9, 10, 7, 11, 7, 1, 5, 6, 9, 3, 5, 4, 5, 2, 1, 1, 2, 1, 0, 0, 0, 1, 0]}, {"role": "Summary Deck", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/07/TFGI_From_Tech_for_Growth_to_Tech_for_Good_Summary_Deck.pdf", "DL": [10, 5, 5, 0, 8, 2, 0, 0, 1, 3, 8, 5, 2, 0, 0, 0, 1, 3, 2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0], "US": [8, 4, 4, 0, 7, 1, 0, 0, 1, 3, 7, 5, 2, 0, 0, 0, 1, 3, 2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0]}, {"role": "Summary (English)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/07/TFGI_Tech_For_Good_Executive_Report.pdf", "DL": [13, 7, 7, 3, 4, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 6, 2, 1, 0, 2, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0], "US": [8, 4, 5, 2, 3, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 5, 2, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0]}, {"role": "Summary (Bahasa)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/06/TFGI_Tech_For_Good_Executive_Report_ID.pdf", "DL": [0, 1, 3, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], "US": [0, 1, 3, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]}, {"role": "Summary (Thai)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/06/TFGI_Tech_For_Good_Executive_Report_TH.pdf", "DL": [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "US": [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"role": "Summary (Vietnamese)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/06/TFGI_Tech_For_Good_Executive_Report_VN.pdf", "DL": [0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], "US": [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]}]}, {"sn": 6, "title": "ASEAN Digital Economy Framework Agreement: Unlocking Southeast Asia’s Potential", "isNew": false, "url": "https://techforgoodinstitute.org/research/tfgi-reports/asean-digital-economy-framework-agreement-unlocking-southeast-asias-potential-report/", "DL": [0, 22, 41, 39, 27, 12, 5, 3, 7, 15, 18, 12, 21, 8, 2, 21, 16, 6, 10, 13, 8, 10, 8, 16, 14, 8, 7, 0, 1, 0, 10, 4], "US": [0, 18, 39, 25, 25, 12, 5, 3, 3, 15, 17, 10, 20, 8, 2, 20, 15, 6, 10, 10, 7, 9, 6, 12, 14, 7, 7, 0, 1, 0, 9, 4], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/12/TFGI_DEFA-Report.pdf", "DL": [0, 22, 41, 39, 27, 12, 5, 3, 7, 15, 18, 12, 21, 8, 2, 21, 16, 6, 10, 13, 8, 10, 8, 16, 14, 8, 7, 0, 1, 0, 10, 4], "US": [0, 18, 39, 25, 25, 12, 5, 3, 3, 15, 17, 10, 20, 8, 2, 20, 15, 6, 10, 10, 7, 9, 6, 12, 14, 7, 7, 0, 1, 0, 9, 4]}]}, {"sn": 7, "title": "Data Sources for Digital Financial Inclusion Research", "isNew": false, "url": "https://techforgoodinstitute.org/research/tfgi-resources/data-sources-for-digital-financial-inclusion-research/", "DL": [8, 13, 5, 3, 6, 7, 0, 1, 1, 5, 8, 6, 6, 2, 2, 6, 13, 6, 4, 6, 5, 5, 1, 1, 7, 1, 0, 0, 0, 0, 2, 1], "US": [6, 10, 3, 3, 6, 5, 0, 1, 1, 4, 7, 6, 4, 2, 2, 6, 7, 6, 4, 5, 5, 4, 1, 1, 5, 1, 0, 0, 0, 0, 2, 1], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2023/04/TFGI-Financial-Inclusion-Compendium-Meta-Updated.pdf", "DL": [8, 13, 5, 3, 6, 7, 0, 1, 1, 5, 8, 6, 6, 2, 2, 6, 13, 6, 4, 6, 5, 5, 1, 1, 7, 1, 0, 0, 0, 0, 2, 1], "US": [6, 10, 3, 3, 6, 5, 0, 1, 1, 4, 7, 6, 4, 2, 2, 6, 7, 6, 4, 5, 5, 4, 1, 1, 5, 1, 0, 0, 0, 0, 2, 1]}]}, {"sn": 8, "title": "Spotlight of Southeast Asia: Evolution of Tech Regulation in the Digital Economy", "isNew": false, "url": null, "DL": [0, 0, 3, 108, 79, 69, 2, 5, 11, 32, 37, 37, 42, 17, 7, 22, 15, 21, 14, 12, 12, 12, 13, 16, 8, 9, 3, 0, 0, 0, 2, 0], "US": [0, 0, 3, 76, 66, 60, 2, 5, 8, 31, 28, 36, 40, 17, 7, 18, 14, 17, 14, 12, 12, 8, 13, 13, 8, 7, 2, 0, 0, 0, 2, 0], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/01/Evolution-of-Tech-Regulation-in-the-Digital-Economy-Full-Report.pdf", "DL": [0, 0, 3, 74, 45, 25, 0, 4, 6, 19, 14, 21, 23, 12, 4, 18, 12, 15, 11, 9, 9, 10, 10, 12, 5, 6, 3, 0, 0, 0, 2, 0], "US": [0, 0, 3, 50, 38, 23, 0, 4, 5, 19, 12, 20, 23, 12, 4, 14, 11, 12, 11, 9, 9, 7, 10, 9, 5, 4, 2, 0, 0, 0, 2, 0]}, {"role": "Summary", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/01/Deck-Evolution-of-Tech-Regulation-in-the-Digital-Economy.pdf", "DL": [0, 0, 0, 24, 16, 22, 0, 1, 1, 5, 5, 8, 9, 3, 1, 4, 3, 4, 1, 2, 3, 0, 2, 1, 3, 1, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 18, 14, 19, 0, 1, 1, 4, 4, 8, 9, 3, 1, 4, 3, 3, 1, 2, 3, 0, 2, 1, 3, 1, 0, 0, 0, 0, 0, 0]}, {"role": "Summary (Indonesia)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/01/Executive-Summary-Bahasa-Indonesia.pdf", "DL": [0, 0, 0, 5, 9, 11, 1, 0, 2, 4, 9, 4, 5, 1, 1, 0, 0, 0, 0, 0, 0, 2, 1, 1, 0, 2, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 4, 7, 9, 1, 0, 1, 4, 6, 4, 4, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 2, 0, 0, 0, 0, 0, 0]}, {"role": "Summary (Thai)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/01/Executive-Summary-Thai.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]}, {"role": "Summary (Vietnamese)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/01/Executive-Summary-Vietnamese.pdf", "DL": [0, 0, 0, 5, 9, 11, 1, 0, 2, 4, 9, 4, 5, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 4, 7, 9, 1, 0, 1, 4, 6, 4, 4, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]}]}, {"sn": 9, "title": "Sandbox to Society: Fostering Innovation in Southeast Asia", "isNew": false, "url": null, "DL": [0, 0, 0, 31, 40, 38, 8, 8, 13, 17, 24, 23, 21, 6, 11, 25, 11, 18, 21, 23, 10, 34, 11, 11, 6, 9, 2, 0, 0, 0, 7, 1], "US": [0, 0, 0, 21, 33, 32, 7, 7, 11, 17, 21, 18, 19, 6, 11, 22, 11, 17, 20, 21, 9, 29, 11, 9, 6, 9, 2, 0, 0, 0, 7, 1], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/02/Full-Report-Sandbox-to-Society.pdf", "DL": [0, 0, 0, 26, 31, 27, 7, 8, 11, 13, 15, 19, 16, 5, 10, 22, 9, 12, 16, 15, 8, 25, 8, 8, 5, 7, 2, 0, 0, 0, 6, 1], "US": [0, 0, 0, 17, 26, 23, 6, 7, 10, 13, 15, 14, 15, 5, 10, 19, 9, 11, 15, 13, 7, 20, 8, 6, 5, 7, 2, 0, 0, 0, 6, 1]}, {"role": "Summary", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/02/Summary-Deck-Sandbox-to-Society.pdf", "DL": [0, 0, 0, 5, 9, 11, 1, 0, 2, 4, 9, 4, 5, 1, 1, 3, 2, 2, 3, 4, 2, 5, 1, 1, 0, 2, 0, 0, 0, 0, 1, 0], "US": [0, 0, 0, 4, 7, 9, 1, 0, 1, 4, 6, 4, 4, 1, 1, 3, 2, 2, 3, 4, 2, 5, 1, 1, 0, 2, 0, 0, 0, 0, 1, 0]}, {"role": "Summary (Indonesia)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/02/Executive-Summary-Bahasa-Indonesia.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 4, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 4, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"role": "Summary (Thai)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/02/Executive-Summary-Thai.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"role": "Summary (Vietnamese)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/02/Executive-Summary-Vietnamese.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0]}]}, {"sn": 10, "title": "Leveraging Digital Platforms for Public Benefit", "isNew": false, "url": null, "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 77, 65, 25, 10, 10, 21, 23, 23, 17, 7, 22, 20, 17, 11, 8, 6, 2, 0, 0, 0, 1, 2], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 48, 32, 22, 9, 6, 11, 17, 16, 11, 7, 15, 15, 8, 10, 5, 6, 2, 0, 0, 0, 1, 2], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/08/TFGI_Leveraging-Digital-Platforms-for-Public-Benefit-Report.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 72, 51, 22, 8, 10, 20, 21, 20, 17, 7, 22, 20, 16, 9, 8, 5, 2, 0, 0, 0, 1, 2], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 43, 27, 19, 7, 6, 10, 15, 13, 11, 7, 15, 15, 7, 8, 5, 5, 2, 0, 0, 0, 1, 2]}, {"role": "Summary", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/08/TFGI_Leveraging-Digital-Platforms-for-Public-Benefit_Executive-Summary.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"role": "Summary (Bahasa)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2024/08/Leveraging-Digital-Platforms-for-Public-Benefit-Executive-Summary-Bahasa-Indonesia.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 79, 5, 14, 3, 2, 0, 1, 2, 3, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 37, 5, 5, 3, 2, 0, 1, 2, 3, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0]}]}, {"sn": 11, "title": "A Framework for Confident Digital Society", "isNew": false, "url": null, "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 43, 22, 29, 14, 12, 8, 8, 13, 20, 1, 0, 0, 0, 1, 2], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 15, 20, 11, 10, 6, 7, 9, 12, 1, 0, 0, 0, 1, 2], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/01/A-Framework-for-Confident-Digital-Societ", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 43, 22, 29, 14, 12, 8, 8, 13, 20, 1, 0, 0, 0, 0, 1], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 15, 20, 11, 10, 6, 7, 9, 12, 1, 0, 0, 0, 0, 1]}, {"role": "Summary", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/01/A-Framework-for-Confident-Digital-Society-Executive-Summary.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]}]}, {"sn": 12, "title": "The Evolution of Tech Governance in Southeast Asia-6", "isNew": false, "url": null, "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 77, 65, 25, 10, 10, 0, 0, 74, 61, 65, 36, 28, 27, 27, 19, 18, 7, 0, 0, 0, 15, 4], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 48, 32, 22, 9, 6, 0, 0, 51, 46, 56, 36, 25, 24, 19, 15, 15, 6, 0, 0, 0, 9, 4], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/03/TFGI_Evolution-of-Tech-Governance-SEA.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 72, 51, 22, 8, 10, 0, 0, 39, 50, 53, 24, 16, 17, 21, 16, 16, 6, 0, 0, 0, 10, 1], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 43, 27, 19, 7, 6, 0, 0, 29, 35, 44, 24, 15, 14, 13, 12, 13, 5, 0, 0, 0, 6, 1]}, {"role": "Summary", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/03/TFGI_Evolution-of-Tech-Governance_Executive-Summary.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 8, 12, 12, 9, 8, 6, 3, 1, 1, 0, 0, 0, 5, 3], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 8, 12, 12, 8, 8, 6, 3, 1, 1, 0, 0, 0, 3, 3]}, {"role": "Summary (Thai)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/03/TFGI_ETGSEA_Digital-Report_TH.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 79, 5, 14, 3, 2, 0, 0, 0, 21, 3, 0, 0, 3, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 37, 5, 5, 3, 2, 0, 0, 0, 10, 3, 0, 0, 2, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0]}]}, {"sn": 13, "title": "Digital Sustainability: Southeast Asia’s Next Frontier for Impact and Innovation", "isNew": false, "url": null, "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 27, 85, 69, 56, 31, 13, 7, 0, 0, 1, 5, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 14, 59, 40, 34, 23, 10, 5, 0, 0, 1, 5, 0], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/05/Full-Report_Digital-Sustainability-Southeast-Asias-Next-Frontier-for-Impact-and-Innovation-1.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 69, 54, 39, 23, 12, 5, 0, 0, 1, 2, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 37, 29, 23, 16, 9, 3, 0, 0, 1, 2, 0]}, {"role": "Executive Summary (English)", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/05/Executive-Summary_Digital-Sustainability-Southeast-Asias-Next-Frontier-for-Impact-and-Innovation-1-2.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 15, 17, 8, 1, 2, 0, 0, 0, 3, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 11, 11, 7, 1, 2, 0, 0, 0, 3, 0]}, {"role": "Abridged Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/05/TFGI_Digital-Sustainability-Abridged-Report-1.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 27, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 14, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}]}, {"sn": 14, "title": "Building Resilience Against\nDigitally-enabled Scams and Fraud\nin Southeast Asia:\nA Whole-of-Society Approach", "isNew": false, "url": null, "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 74, 94, 49, 37, 7, 0, 0, 0, 27, 8], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 63, 34, 31, 6, 0, 0, 0, 21, 6], "files": [{"role": "Executive Summary", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/08/Executive-Summary-Scams-and-Fraud-SEA-6.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 35, 15, 13, 0, 0, 0, 0, 5, 1], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 21, 9, 11, 0, 0, 0, 0, 5, 1]}, {"role": "Full Report", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/08/External-Scams-and-Fraud-SEA-6-1.pdf", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52, 59, 34, 24, 7, 0, 0, 0, 22, 7], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 42, 25, 20, 6, 0, 0, 0, 16, 5]}]}, {"sn": 15, "title": "Safeguarding the Digital Generation: Strengthening Child Online Protection Frameworks in Southeast Asia", "isNew": false, "url": null, "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 11, 5], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 4], "files": [{"role": "Policy Brief", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/12/Policy-Brief-Safeguarding-the-Digital-Ge", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 11, 5], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 4]}]}, {"sn": 16, "title": "Realising a Confident Digital Society: Spotlight on Southeast Asia", "isNew": false, "url": null, "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 74, 94, 49, 37, 7, 0, 2, 0, 12, 8], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 63, 34, 31, 6, 0, 2, 0, 12, 7], "files": [{"role": "Executive Summary", "url": "https://techforgoodinstitute.org/wp-content/uploads/2025/01/TFGI_CDS_Digital-Report_Executive-Summar", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 35, 15, 13, 0, 0, 1, 0, 6, 4], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 21, 9, 11, 0, 0, 1, 0, 6, 3]}, {"role": "Full Report", "url": "https://techforgoodinstitute.org/file/TFGI_Executive-Summary-Realising-a-Confident-Digital-Society.p", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52, 59, 34, 24, 7, 0, 1, 0, 6, 4], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 42, 25, 20, 6, 0, 1, 0, 6, 4]}]}, {"sn": 17, "title": "The Evolution of Tech Governance in Southeast Asia (Third Edition, Mar 2026)", "isNew": true, "url": "https://techforgoodinstitute.org/research/tfgi-reports/the-evolution-of-tech-governance-in-southeast-asia-6-third-edition/", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 72, 59], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 37], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/research/tfgi-reports/the-evolution-of-tech-governance-in-southeast-asia-6-third-edition/?download-attachment=27492&post=27362", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 47, 27], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 18]}, {"role": "Executive Summary", "url": "https://techforgoodinstitute.org/research/tfgi-reports/the-evolution-of-tech-governance-in-southeast-asia-6-third-edition/?download-attachment=27379&post=27362", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 17], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 13]}, {"role": "Summary (Indonesia)", "url": "https://techforgoodinstitute.org/research/tfgi-reports/the-evolution-of-tech-governance-in-southeast-asia-6-third-edition/?download-attachment=30114&post=27362", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2]}, {"role": "Summary (Thai)", "url": "https://techforgoodinstitute.org/research/tfgi-reports/the-evolution-of-tech-governance-in-southeast-asia-6-third-edition/?download-attachment=30115&post=27362", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2]}, {"role": "Summary (Vietnamese)", "url": "https://techforgoodinstitute.org/research/tfgi-reports/the-evolution-of-tech-governance-in-southeast-asia-6-third-edition/?download-attachment=30116&post=27362", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2]}]}, {"sn": 18, "title": "From Digitalisation to Platform-Enabled Governance", "isNew": true, "url": "https://techforgoodinstitute.org/research/tfgi-reports/from-digitalisation-to-platform-enabled-governance-strengthening-policy-implementation-through-platform-driven-innovation/", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 47, 48], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 33, 35], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/research/tfgi-reports/from-digitalisation-to-platform-enabled-governance-strengthening-policy-implementation-through-platform-driven-innovation/?download-attachment=27732&post=25487", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 31, 18], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 14]}, {"role": "Playbook", "url": "https://techforgoodinstitute.org/research/tfgi-reports/from-digitalisation-to-platform-enabled-governance-strengthening-policy-implementation-through-platform-driven-innovation/?download-attachment=29790&post=25487", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 24], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 16]}, {"role": "Executive Summary", "url": "https://techforgoodinstitute.org/research/tfgi-reports/from-digitalisation-to-platform-enabled-governance-strengthening-policy-implementation-through-platform-driven-innovation/?download-attachment=27731&post=25487", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 6], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 5]}]}, {"sn": 19, "title": "From Payment for Goods to Payment for Good: Digital Giving in Southeast Asia", "isNew": true, "url": "https://techforgoodinstitute.org/research/tfgi-reports/from-payment-for-goods-to-payment-for-good-digital-giving-in-southeast-asia-an-exploratory-study-2/", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 25], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 23], "files": [{"role": "Full Report", "url": "https://techforgoodinstitute.org/research/tfgi-reports/from-payment-for-goods-to-payment-for-good-digital-giving-in-southeast-asia-an-exploratory-study-2/?download-attachment=29865&post=29861", "DL": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 25], "US": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 23]}]}], "generated": "2026-06-23", "jun_idx": 31, "may_idx": 30};
+const TEAL="#13463B",TEAL2="#1E7D66",TEAL3="#54B596",GREEN="#33B27A",GOLD="#bd8a2a";
+const M=D.months,R=D.reports,JI=D.jun_idx,MI=D.may_idx;
+document.getElementById('gen').textContent=D.generated;
+const mlab=m=>{const[y,mo]=m.split('-');return new Date(y,mo-1,1).toLocaleDateString('en',{month:'short',year:'2-digit'});};
+document.getElementById('thru').textContent=mlab(M[M.length-1]);
+const f=n=>Math.round(n).toLocaleString();
+const ytdIdx=M.map((m,i)=>m.startsWith('2026')?i:-1).filter(i=>i>=0);
+const last12=M.map((_,i)=>i).slice(-12);
+const sumi=(a,idx)=>idx.reduce((s,i)=>s+a[i],0);
+R.forEach(r=>{r.all=r.DL.reduce((a,b)=>a+b,0);r.allU=r.US.reduce((a,b)=>a+b,0);
+ r.ytd=sumi(r.DL,ytdIdx);r.t12=sumi(r.DL,last12);r.may=r.DL[MI];r.jun=r.DL[JI];
+ r.mom=r.may?Math.round((r.jun-r.may)/r.may*100):null;});
+const TOT=M.map((_,i)=>R.reduce((a,r)=>a+r.DL[i],0));
+const TOTU=M.map((_,i)=>R.reduce((a,r)=>a+r.US[i],0));
+const allTime=TOT.reduce((a,b)=>a+b,0),ytd=sumi(TOT,ytdIdx),t12=sumi(TOT,last12);
+const momTot=TOT[MI]?Math.round((TOT[JI]-TOT[MI])/TOT[MI]*100):0;
+const chip=v=>v>=0?`<span class=up>▲ ${v}%</span>`:`<span class=dn>▼ ${Math.abs(v)}%</span>`;
+document.getElementById('kpis').innerHTML=[
+ ['All-time downloads',f(allTime),''],['2026 YTD',f(ytd),''],
+ [mlab(M[JI]),f(TOT[JI]),chip(momTot)+' vs prev'],[mlab(M[MI]),f(TOT[MI]),''],
+ ['Last 12 months',f(t12),'']
+].map(k=>`<div class="kpi"><div class="lab">${k[0]}</div><div class="val">${k[1]}</div><div class="sub">${k[2]||'&nbsp;'}</div></div>`).join('');
+document.getElementById('meth').innerHTML='<b>How to read this:</b> Through <b>Apr 2026</b>, figures come from GA4 link-click tracking. <b>May 2026 onward</b>, GA4 broke during the site revamp, so figures come from the developer server log (<b>Downloads</b> = file fetches, <b>Users</b> = unique IPs). <b>Feb–Apr 2026</b> read low because tracking was already degrading pre-revamp. Shows the tracked reports plus 3 new 2026 reports (<span class="badge">NEW</span>); standalone policy briefs are excluded.';
+
+let metric='DL',range=18,basis='all',drill='DL';
+const baseOpts=extra=>Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f(c.raw)}}}},extra);
+const gridc='rgba(30,125,102,.12)';
+const trend=new Chart(document.getElementById('trend'),{type:'bar',
+ data:{labels:[],datasets:[{data:[],backgroundColor:TEAL2,borderRadius:5,maxBarThickness:34}]},
+ options:baseOpts({scales:{y:{beginAtZero:true,grid:{color:gridc},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}}})});
+function drawTrend(){const src=metric==='DL'?TOT:TOTU;let idx=M.map((_,i)=>i);if(range)idx=idx.slice(-range);
+ trend.data.labels=idx.map(i=>mlab(M[i]));trend.data.datasets[0].data=idx.map(i=>src[i]);
+ trend.data.datasets[0].backgroundColor=metric==='DL'?TEAL2:TEAL3;trend.update();}
+const top=new Chart(document.getElementById('top'),{type:'bar',
+ data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:5}]},
+ options:baseOpts({indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:gridc}},y:{grid:{display:false},ticks:{font:{size:10.5},autoSkip:false}}}})});
+function drawTop(){const s=[...R].sort((a,b)=>b[basis]-a[basis]).slice(0,10).reverse();
+ top.data.labels=s.map(r=>r.title.length>42?r.title.slice(0,40)+'…':r.title);
+ top.data.datasets[0].data=s.map(r=>r[basis]);
+ top.data.datasets[0].backgroundColor=s.map(r=>r.isNew?GOLD:TEAL);top.update();}
+const repSel=document.getElementById('repSel');
+repSel.innerHTML=[...R].map((r,i)=>({r,i})).sort((a,b)=>b.r.all-a.r.all).map(o=>`<option value="${o.i}">${o.r.title}${o.r.isNew?'  (new)':''}</option>`).join('');
+const repTrend=new Chart(document.getElementById('repTrend'),{type:'line',
+ data:{labels:M.map(mlab),datasets:[{data:[],borderColor:TEAL2,backgroundColor:'rgba(30,125,102,.14)',fill:true,tension:.32,pointRadius:0,borderWidth:2}]},
+ options:baseOpts({scales:{y:{beginAtZero:true,grid:{color:gridc},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{maxTicksLimit:10,font:{size:9}}}}})});
+function drawRep(){const r=R[+repSel.value];repTrend.data.datasets[0].data=r[drill];
+ repTrend.data.datasets[0].borderColor=drill==='DL'?TEAL2:TEAL3;
+ repTrend.data.datasets[0].backgroundColor=drill==='DL'?'rgba(30,125,102,.14)':'rgba(84,181,150,.16)';repTrend.update();
+ const tot=r.files.map(fl=>fl[drill].reduce((a,b)=>a+b,0));
+ document.getElementById('repFiles').innerHTML='<div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Files · all-time '+(drill==='DL'?'downloads':'users')+'</div>'+
+  r.files.map((fl,i)=>`<div class="filerow"><span class="muted">${fl.role}</span><b>${f(tot[i])}</b></div>`).join('');}
+let sortK='all',dir=-1;
+function drawTable(){const q=(document.getElementById('search').value||'').toLowerCase();
+ let rows=R.filter(r=>r.title.toLowerCase().includes(q));
+ rows.sort((a,b)=>sortK==='title'?dir*a.title.localeCompare(b.title):dir*((a[sortK]||0)-(b[sortK]||0)));
+ const mx=Math.max(...R.map(r=>r.t12),1);
+ document.querySelector('#tbl tbody').innerHTML=rows.map(r=>{
+  const mom=r.mom==null?'<span class=muted>—</span>':(r.mom>=0?`<span class=up>▲${r.mom}%</span>`:`<span class=dn>▼${Math.abs(r.mom)}%</span>`);
+  const w=Math.round(100*r.t12/mx);
+  return `<tr class="${r.isNew?'new':''}"><td class="rep">${r.title}${r.isNew?'<span class=badge>NEW</span>':''}</td>
+   <td class=num><b>${f(r.all)}</b></td><td class=num>${f(r.ytd)}</td><td class=num>${f(r.may)}</td>
+   <td class=num>${f(r.jun)}</td><td class=num>${mom}</td><td><div class="bar"><i style="width:${w}%"></i></div></td></tr>`;}).join('');}
+document.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+ const g=b.dataset.grp;document.querySelectorAll('.seg[data-grp="'+g+'"]').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+ const v=b.dataset.v;
+ if(g==='metric'){metric=v;drawTrend();}else if(g==='range'){range=+v;drawTrend();}
+ else if(g==='basis'){basis=v;drawTop();}else if(g==='drill'){drill=v;drawRep();}});
+repSel.onchange=drawRep;document.getElementById('search').oninput=drawTable;
+document.querySelectorAll('#tbl th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(!k)return;
+ if(sortK===k)dir*=-1;else{sortK=k;dir=k==='title'?1:-1;}
+ document.querySelectorAll('#tbl th .arr').forEach(a=>a.textContent='');
+ th.querySelector('.arr').textContent=dir<0?'▼':'▲';drawTable();});
+drawTrend();drawTop();drawRep();drawTable();
+</script>
+</body>
+</html>
