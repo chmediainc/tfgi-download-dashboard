@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v6 month-filters -->
+<!-- build: v7 timeline-note -->
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -166,7 +166,7 @@ document.getElementById('kpis').innerHTML=[
  [mlab(M[JI]),f(TOT[JI]),chip(momTot)+' vs prev'],[mlab(M[MI]),f(TOT[MI]),''],
  ['Last 12 months',f(t12),'']
 ].map(k=>`<div class="kpi"><div class="lab">${k[0]}</div><div class="val">${k[1]}</div><div class="sub">${k[2]||'&nbsp;'}</div></div>`).join('');
-document.getElementById('meth').innerHTML='<b>How to read this:</b> Through <b>Apr 2026</b>, figures come from GA4 link-click tracking. <b>May 2026 onward</b>, GA4 broke during the site revamp, so figures come from the developer server log (<b>Downloads</b> = file fetches, <b>Users</b> = unique IPs). <b>Feb–Apr 2026</b> read low because tracking was already degrading pre-revamp. Shows the tracked reports plus 3 new 2026 reports (<span class="badge">NEW</span>); standalone policy briefs are excluded.';
+document.getElementById('meth').innerHTML='<b>How to read this:</b> GA4 data is reliable through <b>Dec 2025</b>. The site was relaunched twice in 2026 (<b>15 Jan</b> and <b>20 May</b>); the GA4 tag was dropped at the 15 Jan relaunch, so <b>Feb–Apr 2026 is missing tracking, not a real drop</b> in downloads. <b>May 2026 onward</b> uses the developer’s bot-cleaned server log (<b>Downloads</b> = file fetches, <b>Users</b> = unique IPs); tracking was re-fixed in late June. Shows tracked reports plus 3 new 2026 reports (<span class="badge">NEW</span>); standalone policy briefs excluded.';
 
 let metric='DL',range=18,basis='all',drill='DL';
 const baseOpts=extra=>Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f(c.raw)}}}},extra);
